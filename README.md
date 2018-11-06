@@ -13,8 +13,8 @@ To get a property from the JSON data, use the function `GetProperty`. For exampl
     {
         "resp":{
             "s":"a string",
-            "i":42
-            "f":12.34
+            "i":42,
+            "f":12.34,
             "a":[
                 1,
                 2,
