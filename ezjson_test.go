@@ -23,7 +23,8 @@ var testDataString = `
 			"bool":false
 		},
 		"int":123,
-		"str":"string in data"
+		"str":"string in data",
+		"nullValue":null
 	},
 	"moreData":{
 		"str":"string in moreData"
@@ -35,9 +36,51 @@ var testDataString = `
 	]
 }`
 
-/*
-Decodes the JSON data from testData and prints it.
-*/
+// In JSON, any value can be null. This introduces some complications for us...
+// If we use GetProperty, we can return null.
+func TestGetNull(t *testing.T) {
+	testData, _ := ezjson.DecodeString(testDataString)
+	v, err := ezjson.GetProperty(testData, "data", "nullValue")
+	if err != nil || v != nil {
+		fmt.Println(err, v)
+		t.FailNow()
+	}
+}
+
+// A NullError should be returned if we read a null value and have the option "ErrorOnNull" set
+// TODO: check type of error!
+func TestGetNullWithErrorOption(t *testing.T) {
+	testData, _ := ezjson.DecodeString(testDataString)
+	v, err := ezjson.GetProperty(testData, ezjson.ErrorOnNull, "data", "nullValue")
+	if err == nil || v != nil {
+		// should return an error
+		t.FailNow()
+	}
+}
+
+// A KeyError should be returned if options are not specified before the actual keys
+// TODO: check type of error!
+func TestIncorrectOption(t *testing.T) {
+	testData, _ := ezjson.DecodeString(testDataString)
+	v, err := ezjson.GetProperty(testData, "data", "nullValue", ezjson.ErrorOnNull)
+	if err == nil || v != nil {
+		// should return an error
+		t.FailNow()
+	}
+}
+
+// In JSON, any value can be null. This introduces some complications for us...
+// If we use GetString however, we will get an empty string.
+func TestGetNullAsString(t *testing.T) {
+	testData, _ := ezjson.DecodeString(testDataString)
+	v, err := ezjson.GetString(testData, "data", "nullValue")
+	if err != nil || v != "" {
+		fmt.Println(err, v)
+		t.FailNow()
+	}
+}
+
+// Decodes the JSON data from testData and prints it.
 func ExampleDecodeString() {
 	testData, err := ezjson.DecodeString(testDataString)
 	if err != nil {
@@ -48,23 +91,19 @@ func ExampleDecodeString() {
 	// this can't be used as a test function (yet?) because the sort order when printing maps is undefined
 }
 
-/*
-Reads and prints the property data.subData from testData
-*/
+// Reads and prints the property data.subData from testData
 func ExampleGetProperty() {
 	testData, _ := ezjson.DecodeString(testDataString)
-	res, skey, err := ezjson.GetProperty(testData, "data", "subData")
+	res, err := ezjson.GetProperty(testData, "data", "subData")
 	if err != nil {
 		fmt.Println(err.Error())
 		return
 	}
-	fmt.Printf("'%s': %#v\n", skey, res)
+	fmt.Println(res)
 	// this can't be used as a test function (yet?) because the sort order when printing maps is undefined
 }
 
-/*
-Reads the array property array from testData
-*/
+// Reads the array property array from testData
 func ExampleGetArray() {
 	testData, _ := ezjson.DecodeString(testDataString)
 	res, err := ezjson.GetArray(testData, "array")
@@ -76,9 +115,7 @@ func ExampleGetArray() {
 	// Output: [1 2 3]
 }
 
-/*
-Reads bool property data.subData.bool from testData
-*/
+// Reads bool property data.subData.bool from testData
 func ExampleGetBool() {
 	testData, _ := ezjson.DecodeString(testDataString)
 	res, err := ezjson.GetBool(testData, "data", "subData", "bool")
@@ -90,9 +127,7 @@ func ExampleGetBool() {
 	// Output: false
 }
 
-/*
-Reads the deeply nested string property data.subData.array[0].str from testData
-*/
+// Reads the deeply nested string property data.subData.array[0].str from testData
 func ExampleGetString() {
 	testData, _ := ezjson.DecodeString(testDataString)
 	res, err := ezjson.GetString(testData, "data", "subData", "array", 0, "str")
@@ -104,9 +139,7 @@ func ExampleGetString() {
 	// Output: a string
 }
 
-/*
-Reads property data.subData.array[0].int from testData as a json.Number
-*/
+// Reads property data.subData.array[0].int from testData as a json.Number
 func ExampleGetNumber() {
 	testData, _ := ezjson.DecodeString(testDataString)
 	res, err := ezjson.GetNumber(testData, "data", "int")
@@ -118,9 +151,7 @@ func ExampleGetNumber() {
 	// Output: 123
 }
 
-/*
-Reads int property array[1] from testData
-*/
+// Reads int property array[1] from testData
 func ExampleGetInt() {
 	testData, _ := ezjson.DecodeString(testDataString)
 	res, err := ezjson.GetInt(testData, "array", 1)
@@ -132,9 +163,7 @@ func ExampleGetInt() {
 	// Output: 2
 }
 
-/*
-Reads float property data.subData.array[2] from testData
-*/
+// Reads float property data.subData.array[2] from testData
 func ExampleGetFloat() {
 	testData, _ := ezjson.DecodeString(testDataString)
 	res, err := ezjson.GetFloat(testData, "data", "subData", "array", 2)
@@ -146,9 +175,7 @@ func ExampleGetFloat() {
 	// Output: 12.34
 }
 
-/*
-TestGetIntWrongType checks trying to read a string property as an int
-*/
+// TestGetIntWrongType checks trying to read a string property as an int
 func TestGetIntWrongType(t *testing.T) {
 	testData, _ := ezjson.DecodeString(testDataString)
 	_, err := ezjson.GetInt(testData, "data", "subData", "array", 0, "str")
@@ -157,9 +184,7 @@ func TestGetIntWrongType(t *testing.T) {
 	}
 }
 
-/*
-TestGetFloatWrongType checks trying to read a string property as an float
-*/
+// TestGetFloatWrongType checks trying to read a string property as an float
 func TestGetFloatWrongType(t *testing.T) {
 	testData, _ := ezjson.DecodeString(testDataString)
 	_, err := ezjson.GetFloat(testData, "data", "subData", "array", 0, "str")
@@ -168,9 +193,7 @@ func TestGetFloatWrongType(t *testing.T) {
 	}
 }
 
-/*
-TestGetNumberWrongType checks trying to read a string property as a json.Number
-*/
+// TestGetNumberWrongType checks trying to read a string property as a json.Number
 func TestGetNumberWrongType(t *testing.T) {
 	testData, _ := ezjson.DecodeString(testDataString)
 	_, err := ezjson.GetNumber(testData, "data", "subData", "array", 0, "str")
@@ -179,9 +202,7 @@ func TestGetNumberWrongType(t *testing.T) {
 	}
 }
 
-/*
-TestGetBoolWrongType checks trying to read a string property as a json.Number
-*/
+// TestGetBoolWrongType checks trying to read a string property as a json.Number
 func TestGetStringWrongType(t *testing.T) {
 	testData, _ := ezjson.DecodeString(testDataString)
 	_, err := ezjson.GetString(testData, "data", "subData", "array", 0, "int")
@@ -190,9 +211,7 @@ func TestGetStringWrongType(t *testing.T) {
 	}
 }
 
-/*
-TestGetBoolWrongType checks trying to read a string property as a json.Number
-*/
+// TestGetBoolWrongType checks trying to read a string property as a json.Number
 func TestGetBoolWrongType(t *testing.T) {
 	testData, _ := ezjson.DecodeString(testDataString)
 	_, err := ezjson.GetBool(testData, "data", "subData", "array", 0, "str")
@@ -201,9 +220,7 @@ func TestGetBoolWrongType(t *testing.T) {
 	}
 }
 
-/*
-TestGetArrayWrongType checks trying to read a string property as a json.Number
-*/
+// TestGetArrayWrongType checks trying to read a string property as a json.Number
 func TestGetArrayWrongType(t *testing.T) {
 	testData, _ := ezjson.DecodeString(testDataString)
 	_, err := ezjson.GetArray(testData, "data", "subData", "array", 0, "str")
@@ -212,9 +229,7 @@ func TestGetArrayWrongType(t *testing.T) {
 	}
 }
 
-/*
-TestPropertyNotFound tests if the various functions return an error for non-existent properties
-*/
+// TestPropertyNotFound tests if the various functions return an error for non-existent properties
 func TestPropertyNotFound(t *testing.T) {
 	testData, _ := ezjson.DecodeString(testDataString)
 
@@ -251,9 +266,7 @@ func TestPropertyNotFound(t *testing.T) {
 	return
 }
 
-/*
-TestIncorrectPath tests incorrect property paths (e.g. containing int where a string is expected)
-*/
+// TestIncorrectPath tests incorrect property paths (e.g. containing int where a string is expected)
 func TestIncorrectPath(t *testing.T) {
 	testData, _ := ezjson.DecodeString(testDataString)
 
@@ -273,4 +286,13 @@ func TestIncorrectPath(t *testing.T) {
 	}
 
 	return
+}
+
+// TestArrayIndexOutOfRange checks trying to read from an array with an out-of-range index
+func TestArrayIndexOutOfRange(t *testing.T) {
+	testData, _ := ezjson.DecodeString(testDataString)
+	_, err := ezjson.GetProperty(testData, "data", "subData", "array", 4)
+	if err == nil {
+		t.FailNow()
+	}
 }

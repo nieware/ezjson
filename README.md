@@ -19,10 +19,13 @@ To get a property from the JSON data, use the function `GetProperty`. For exampl
                 1,
                 2,
                 false
-            ]
+            ],
+            "n":null
         }
     }
 
-...you can get the property `resp` as an `interface{}` with `resp := GetProperty(data, "resp")`. You can then get the string `s` with `s := GetString(resp, "s")` or directly from `data` with `s := GetString(data, "resp", "s")`. You can get the first element of the array a with `i := GetInt(data, "resp", "a", 0)` or the third one with `b := GetBool(resp, "a", 2)`.
+...you can get the property `resp` as an `interface{}` with `resp, err := ezjson.GetProperty(data, "resp")`. You can then get the string `s` with `s, err := ezjson.GetString(resp, "s")` or directly from `data` with `s, err := ezjson.GetString(data, "resp", "s")`. You can get the first element of the array a with `i, err := ezjson.GetInt(data, "resp", "a", 0)` or the third one with `b, err := ezjson.GetBool(resp, "a", 2)`.
+
+Usually, `null` values are returned as a `nil` interface or as the zero type of the other functions - i.e. `n, err := ezjson.GetInt(data, "resp", "n") ` will return 0. You can specify the option `ezjson.ErrorOnNull` to get an `ezjson.NullError` in case of a null value: when calling `n, err := ezjson.GetInt(data, ezjson.ErrorOnNull, "resp", "n")`, err will be `ezjson.NullError`.
 
 See the [documentation and examples](https://godoc.org/github.com/nieware/ezjson) for more details.
