@@ -1,3 +1,5 @@
+// Allows you to easily read arbitrary JSON data in non-performance-critical use cases
+
 package ezjson
 
 import (
