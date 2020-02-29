@@ -7,9 +7,11 @@ import (
 	"strconv"
 )
 
+// Option allows changing the behaviour of the GetProperty functions
 type Option int
 
 const (
+	// ErrorOnNull - if this option is specified, a NullError will be returned in case of a null value.
 	ErrorOnNull Option = 1
 )
 
