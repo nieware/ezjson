@@ -58,31 +58,31 @@ func (e *NullError) Error() string {
 // Supported types are "array", "number", "string" and "bool". If another value is given, no checks are made.
 // If ErrorOnNull is passed, a NullError is returned if the value is null.
 func GetPropertyWithType(intf interface{}, dType string, keys ...interface{}) (res interface{}, err error) {
-	skey, idx, ok, returnErrorOnNull, expectOptions := "", 0, true, false, true
+	sKey, idx, ok, returnErrorOnNull, expectOptions := "", 0, true, false, true
 	for idx, key := range keys {
 		switch k := key.(type) {
 		case int:
-			skey = strconv.Itoa(k)
+			sKey = strconv.Itoa(k)
 			expectOptions = false
 			a, isArray := intf.([]interface{})
 			if !isArray {
-				return nil, &KeyError{"No array found", idx, skey}
+				return nil, &KeyError{"No array found", idx, sKey}
 			}
 			if k < 0 || k >= len(a) {
-				return nil, &KeyError{"Array index out of bounds", idx, skey}
+				return nil, &KeyError{"Array index out of bounds", idx, sKey}
 			}
 			intf = a[k]
 		case string:
-			skey = k
+			sKey = k
 			expectOptions = false
 			m, isMap := intf.(map[string]interface{})
 			if !isMap {
-				return nil, &KeyError{"No object found", idx, skey}
+				return nil, &KeyError{"No object found", idx, sKey}
 			}
 			var ok bool
 			intf, ok = m[k]
 			if !ok {
-				return nil, &KeyError{"Object property not found", idx, skey}
+				return nil, &KeyError{"Object property not found", idx, sKey}
 			}
 		case Option:
 			if !expectOptions {
@@ -110,11 +110,11 @@ func GetPropertyWithType(intf interface{}, dType string, keys ...interface{}) (r
 	// if the type cast fails, we return an error - except if the value is "null", because
 	// any value can be "null" in JSON. In this case, intf will be nil - checking for this is left to the caller...
 	if !ok && intf != nil {
-		return nil, &KeyError{fmt.Sprintf("Property is not of type %s", dType), idx, skey}
+		return nil, &KeyError{fmt.Sprintf("Property is not of type %s", dType), idx, sKey}
 	}
 	// ...except when the ErrorOnNull option is specified, in which case we return a NullError.
 	if intf == nil && returnErrorOnNull {
-		return nil, &NullError{skey}
+		return nil, &NullError{sKey}
 	}
 
 	return intf, nil

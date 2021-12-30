@@ -184,7 +184,7 @@ func TestGetIntWrongType(t *testing.T) {
 	}
 }
 
-// TestGetFloatWrongType checks trying to read a string property as an float
+// TestGetFloatWrongType checks trying to read a string property as a float
 func TestGetFloatWrongType(t *testing.T) {
 	testData, _ := ezjson.DecodeString(testDataString)
 	_, err := ezjson.GetFloat(testData, "data", "subData", "array", 0, "str")
